@@ -1,5 +1,5 @@
 // Se ejecuta DENTRO de una pestaña abierta en https://www.instagram.com/pamrod/
-// (sin iniciar sesión). Devuelve un texto JSON con lo que muestra el perfil público.
+// (sin iniciar sesión). Deja en window.__lectura un texto JSON con lo que muestra el perfil público.
 (async () => {
   const dec = (s) => { const t = document.createElement('textarea'); t.innerHTML = s; return t.value; };
   const num = (txt) => {
@@ -33,7 +33,7 @@
       const partes = l.split('/').filter(Boolean);
       const codigo = partes[partes.length - 1];
       const tipo = partes.includes('reel') ? 'Reel' : 'Post';
-      if (x) posts.push({ codigo, url: 'https://www.instagram.com' + l, tipo, fecha: iso(x[3]), me_gusta: num(x[1]), comentarios: num(x[2]), texto: x[4].replace(/"\.\s*$/, '').replace(/\s+/g, ' ').trim().slice(0, 90) });
+      if (x) posts.push({ codigo, url: 'https://www.instagram.com' + l, tipo, fecha: iso(x[3]), me_gusta: num(x[1]), comentarios: num(x[2]), texto: x[4].replace(/"\.\s*$/, '').replace(/\s+/g, ' ').trim().slice(0, 140) });
     } catch (e) { /* se omite esa publicación */ }
     await new Promise((r) => setTimeout(r, 400));
   }
@@ -44,11 +44,12 @@
   }
   posts.forEach((p) => { if (p.fijada === undefined) p.fijada = false; });
 
-  return JSON.stringify({
+  window.__lectura = JSON.stringify({
     metodo: 'navegador',
     seguidores_texto: fm ? fm[1] : (mm ? mm[1] : null),
     seguidores: exacto ?? (fm ? num(fm[1]) : null),
     publicaciones: mm ? num(mm[3]) : null,
     posts,
   });
+  return 'LISTO ' + window.__lectura.length;
 })();

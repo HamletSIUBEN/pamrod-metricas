@@ -173,8 +173,19 @@ body { background: var(--color-bg); color: var(--color-fg); font-family: var(--f
 .pr-empty ol { margin: 0; padding-left: 1.2em; display: flex; flex-direction: column; gap: 4px; }
 .pr-link { color: inherit; text-decoration: underline; text-decoration-color: color-mix(in srgb, currentColor 35%, transparent); text-underline-offset: 3px; }
 .pr-link:hover { text-decoration-color: currentColor; }
-.pr-thumb a { color: inherit; text-decoration: none; }
+a.pr-thumb, a.pr-thumb:hover { color: #fff; text-decoration: none; }
+.pr-top .pr-thumb { aspect-ratio: 16 / 8; }
 .pr-pin { font-size: 11px; color: var(--color-fg-muted); margin-left: 6px; }
+
+.pr-todo { background: linear-gradient(135deg, color-mix(in srgb, var(--mo) 10%, var(--color-panel)), color-mix(in srgb, var(--ro) 8%, var(--color-panel))); border-color: color-mix(in srgb, var(--mo) 30%, var(--color-border-line)); }
+.pr-recos { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); gap: var(--cds-gap-md); }
+.pr-reco { display: flex; gap: var(--cds-gap-sm); align-items: flex-start; background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-md); min-width: 0; }
+.pr-reco b { display: block; font-size: var(--cds-font-size-body); margin-bottom: 4px; }
+.pr-reco p { margin: 0; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); line-height: 1.5; }
+.pr-reco-n { flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 13px; color: #fff; background: var(--az); }
+.pr-reco.bien .pr-reco-n { background: var(--ve); }
+.pr-reco.ojo .pr-reco-n { background: var(--ro); }
+.pr-reco.idea .pr-reco-n { background: var(--mo); }
 </style>
 
 <div class="pr">
@@ -207,53 +218,62 @@ body { background: var(--color-bg); color: var(--color-fg); font-family: var(--f
     <div class="pr-kpis">
       <div class="pr-kpi" style="--c: var(--az)">
         <div class="pr-kpi-top"><span class="pr-kpi-label">Seguidores</span><span class="pr-chip auto">Auto</span></div>
-        <span class="pr-kpi-value dash-skeleton" data-source="ig_ultimo" data-field="seguidores" data-row="0">—</span>
+        <span class="pr-kpi-value dash-skeleton" data-src="ig_ultimo" data-f="seguidores" data-fmt="int">—</span>
         <div class="pr-mini"><i id="mini-seg"></i></div>
         <span class="pr-kpi-note" id="note-seg"></span>
       </div>
       <div class="pr-kpi" style="--c: var(--ro)">
-        <div class="pr-kpi-top"><span class="pr-kpi-label">Publicaciones, 30 días</span><span class="pr-chip auto">Auto</span></div>
-        <span class="pr-kpi-value dash-skeleton" data-source="kpi_posts" data-field="publicaciones_30d" data-row="0">—</span>
-        <span class="pr-kpi-note" id="note-freq"></span>
-      </div>
-      <div class="pr-kpi" style="--c: var(--am)">
-        <div class="pr-kpi-top"><span class="pr-kpi-label">Me gusta por publicación</span><span class="pr-chip auto">Auto</span></div>
-        <span class="pr-kpi-value dash-skeleton" data-source="kpi_posts" data-field="me_gusta_mediana" data-row="0">—</span>
-        <span class="pr-kpi-note">Publicación típica (mediana), 30 días</span>
-      </div>
-      <div class="pr-kpi" style="--c: var(--ve)">
-        <div class="pr-kpi-top"><span class="pr-kpi-label">Comentarios por publicación</span><span class="pr-chip auto">Auto</span></div>
-        <span class="pr-kpi-value dash-skeleton" data-source="kpi_posts" data-field="comentarios_prom" data-row="0">—</span>
-        <span class="pr-kpi-note">Promedio, últimos 30 días</span>
+        <div class="pr-kpi-top"><span class="pr-kpi-label">Vistas de reels, 30 días</span><span class="pr-chip auto">Auto</span></div>
+        <span class="pr-kpi-value dash-skeleton" data-src="kpi" data-f="vistas_reels_30d" data-fmt="int">—</span>
+        <span class="pr-kpi-note" id="note-vr"></span>
       </div>
       <div class="pr-kpi" style="--c: var(--mo)">
-        <div class="pr-kpi-top"><span class="pr-kpi-label">Interacción pública</span><span class="pr-chip auto">Auto</span></div>
-        <span class="pr-kpi-value dash-skeleton" data-source="kpi_posts" data-field="interaccion_prom" data-row="0">—</span>
-        <span class="pr-kpi-note">(Me gusta + comentarios) ÷ seguidores</span>
+        <div class="pr-kpi-top"><span class="pr-kpi-label">Su reel normal</span><span class="pr-chip auto">Auto</span></div>
+        <span class="pr-kpi-value dash-skeleton" data-src="kpi" data-f="reel_normal" data-fmt="int">—</span>
+        <span class="pr-kpi-note">Vistas de un reel típico (mediana, 90 días). Es la vara para medir cada reel.</span>
       </div>
-      <div class="pr-kpi" style="--c: var(--ro)">
-        <div class="pr-kpi-top"><span class="pr-kpi-label">Vistas, 30 días</span><span class="pr-chip cap">Captura</span></div>
-        <span class="pr-kpi-value dash-skeleton" data-source="ultimo" data-field="valor" data-where="metrica=vistas_30d_ig">—</span>
-        <div class="pr-mini"><i id="mini-vis"></i></div>
-        <span class="pr-kpi-note" id="note-vis"></span>
+      <div class="pr-kpi" style="--c: var(--ve)">
+        <div class="pr-kpi-top"><span class="pr-kpi-label">Enganche</span><span class="pr-chip auto">Auto</span></div>
+        <span class="pr-kpi-value dash-skeleton" data-src="kpi" data-f="enganche_normal" data-fmt="pct1">—</span>
+        <span class="pr-kpi-note">De cada 100 que ven un reel, cuántos dan like o comentan</span>
+      </div>
+      <div class="pr-kpi" style="--c: var(--am)">
+        <div class="pr-kpi-top"><span class="pr-kpi-label">Conversación</span><span class="pr-chip auto">Auto</span></div>
+        <span class="pr-kpi-value dash-skeleton" data-src="kpi" data-f="conversacion_normal" data-fmt="dec1">—</span>
+        <span class="pr-kpi-note">Comentarios por cada 100 me gusta. Mide comunidad.</span>
+      </div>
+      <div class="pr-kpi" style="--c: var(--az)">
+        <div class="pr-kpi-top"><span class="pr-kpi-label">Ritmo semanal</span><span class="pr-chip auto">Auto</span></div>
+        <span class="pr-kpi-value dash-skeleton" data-src="kpi" data-f="por_semana" data-fmt="dec1">—</span>
+        <span class="pr-kpi-note" id="note-ritmo"></span>
       </div>
     </div>
 
-    <div class="pr-grid wide">
-      <div class="pr-card" id="card-likes">
-        <div class="pr-card-head"><div><h3>Me gusta por publicación</h3><p class="note">Sus publicaciones más recientes, por fecha. Toca una barra para ver el detalle.</p></div><span class="pr-chip auto">Auto</span></div>
-        <div class="pr-chart tall dash-skeleton" id="ch-likes" data-source="ig_posts"></div>
-        <div class="pr-legend"><span><i class="pr-dot" style="background: var(--ro)"></i>Reel</span><span><i class="pr-dot" style="background: var(--az)"></i>Post o carrusel</span></div>
+    <div class="pr-card pr-todo" id="que-hacer">
+      <div class="pr-card-head"><div><h3>Qué hacer esta semana</h3><p class="note">Sale de sus números; cambia cada mañana con los datos nuevos</p></div><span class="pr-chip auto">Auto</span></div>
+      <div class="pr-recos" id="recos"><div class="dash-skeleton" style="min-height: 120px"></div></div>
+    </div>
+
+    <div class="pr-card" id="card-vistas">
+      <div class="pr-card-head"><div><h3>Vistas por reel</h3><p class="note">Cada barra es un reel, coloreada según cómo le fue frente a su normal (línea punteada). Toca una para abrirlo.</p></div><span class="pr-chip auto">Auto</span></div>
+      <div class="pr-chart tall dash-skeleton" id="ch-vistas"></div>
+      <div class="pr-legend" id="leg-etq"></div>
+    </div>
+
+    <div class="pr-grid">
+      <div class="pr-card" id="card-temas">
+        <div class="pr-card-head"><div><h3>Qué tema le funciona</h3><p class="note">Vistas de un reel típico por tema. El tema sale del texto de cada publicación.</p></div><span class="pr-chip auto">Auto</span></div>
+        <div class="pr-chart short dash-skeleton" id="ch-temas"></div>
       </div>
-      <div class="pr-card" id="card-tipo">
-        <div class="pr-card-head"><div><h3>Reels vs. posts</h3><p class="note">Me gusta de la publicación típica (mediana), así un video viral no distorsiona</p></div><span class="pr-chip auto">Auto</span></div>
-        <div class="pr-chart short dash-skeleton" id="ch-tipo" data-source="por_tipo"></div>
+      <div class="pr-card" id="card-dias">
+        <div class="pr-card-head"><div><h3>Mejor día para publicar</h3><p class="note">Vistas típicas de los reels según el día en que salieron. Gris: días sin reels todavía.</p></div><span class="pr-chip auto">Auto</span></div>
+        <div class="pr-chart short dash-skeleton" id="ch-dias"></div>
       </div>
     </div>
 
     <div class="pr-card" id="card-camino">
       <div class="pr-card-head"><div><h3>Seguidores: camino a las metas</h3><p class="note">Sólido: conteos reales del perfil. Punteado: el ritmo que pide el plan.</p></div><span class="pr-chip auto">Auto</span></div>
-      <div class="pr-chart dash-skeleton" id="ch-seg" data-source="ig_diario metas"></div>
+      <div class="pr-chart dash-skeleton" id="ch-seg"></div>
       <div class="pr-legend"><span><i class="pr-sw" style="border-top-color: var(--az)"></i>Real</span><span><i class="pr-sw dash" style="border-top-color: var(--cds-chart-reference)"></i>Meta del plan</span></div>
     </div>
   </section>
@@ -261,27 +281,32 @@ body { background: var(--color-bg); color: var(--color-fg); font-family: var(--f
   <!-- PUBLICACIONES -->
   <section class="pr-page" id="publicaciones" data-page="publicaciones" hidden>
     <div class="pr-card">
-      <div class="pr-card-head"><div><h3>Las 3 con más me gusta</h3><p class="note">De las publicaciones revisadas. Ideas para repetir con otro ángulo.</p></div><span class="pr-chip auto">Auto</span></div>
-      <div class="pr-top" id="top-posts" data-source="posts_calc"></div>
+      <div class="pr-card-head"><div><h3>Las que más destacaron</h3><p class="note">Ordenadas por cuántas veces superaron su normal. Ideas para repetir con otro ángulo.</p></div><span class="pr-chip auto">Auto</span></div>
+      <div class="pr-top" id="top-posts"></div>
     </div>
     <div class="pr-card" id="card-posts">
       <div class="pr-card-head">
-        <div><h3>Todas las publicaciones revisadas</h3><p class="note">Toca un encabezado para ordenar. Los me gusta se actualizan cada mañana.</p></div>
-        <input class="pr-search" id="post-search" type="search" placeholder="Buscar publicación…" aria-label="Buscar publicación">
+        <div><h3>Todas las publicaciones</h3><p class="note">Toca un encabezado para ordenar. "Frente a su normal": reels por vistas, posts por me gusta.</p></div>
+        <input class="pr-search" id="post-search" type="search" placeholder="Buscar publicación o tema…" aria-label="Buscar publicación">
       </div>
       <div class="pr-tablewrap">
-        <table class="pr-table" id="tb-posts" data-source="posts_calc" data-row-key="codigo">
+        <table class="pr-table" id="tb-posts">
           <thead><tr>
-            <th data-field="fecha" data-k="fecha"><button type="button">Fecha</button></th>
-            <th data-field="texto" data-k="texto"><button type="button">Publicación</button></th>
-            <th data-field="tipo" data-k="tipo"><button type="button">Tipo</button></th>
-            <th class="num" data-field="me_gusta" data-k="me_gusta"><button type="button">Me gusta</button></th>
-            <th class="num" data-field="comentarios" data-k="comentarios"><button type="button">Comentarios</button></th>
-            <th class="num" data-field="interaccion" data-k="interaccion"><button type="button">Interacción</button></th>
+            <th data-k="fecha"><button type="button">Fecha</button></th>
+            <th data-k="texto"><button type="button">Publicación</button></th>
+            <th data-k="tema"><button type="button">Tema</button></th>
+            <th data-k="tipo"><button type="button">Tipo</button></th>
+            <th class="num" data-k="vistas"><button type="button">Vistas</button></th>
+            <th data-k="indice"><button type="button">Frente a su normal</button></th>
+            <th class="num" data-k="enganche"><button type="button">Enganche</button></th>
+            <th class="num" data-k="conversacion"><button type="button">Conversación</button></th>
+            <th class="num" data-k="me_gusta"><button type="button">Me gusta</button></th>
+            <th class="num" data-k="comentarios"><button type="button">Comentarios</button></th>
           </tr></thead>
           <tbody></tbody>
         </table>
       </div>
+      <p class="pr-how">Vistas: solo reels (Instagram no muestra en público las de posts y carruseles). Enganche: (me gusta + comentarios) ÷ vistas. Conversación: comentarios por cada 100 me gusta.</p>
     </div>
   </section>
 

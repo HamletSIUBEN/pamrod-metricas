@@ -296,42 +296,73 @@ function drawRing(el, value, big, label, color) {
   const l = document.createElement('span'); l.className = 'lbl'; l.textContent = label; el.append(l);
 }
 
-/* ---------- me gusta por publicación (con tope para el viral) ---------- */
-function drawPostBars(el, posts) {
-  const pts = posts.slice().sort((a, b) => String(a.fecha).localeCompare(String(b.fecha))).slice(-14);
+/* ---------- etiquetas frente a su normal ---------- */
+const ETQ = { Viral: C.mo, Arriba: C.ve, Normal: C.az, Abajo: '#9a98b0' };
+const ETQ_TXT = { Viral: 'Viral: 5 veces o más su normal', Arriba: 'Arriba: 1.5 a 5 veces', Normal: 'Normal', Abajo: 'Abajo: menos de 2/3' };
+const TEMA_COL = { 'HYROX y fuerza': C.az, Running: C.ve, Baile: C.ro, Bienestar: C.am, Mentalidad: C.mo, Marcas: '#0ea5e9', 'Humor y día a día': '#f97316' };
+const fX = (x) => (x >= 10 ? Math.round(x) : d3.format('.1f')(x)) + '×';
+
+/* ---------- vistas por reel ---------- */
+function drawVistas(el, posts, normal) {
+  const pts = posts.filter((p) => p.tipo === 'Reel' && p.vistas !== null).sort((a, b) => a.fecha.localeCompare(b.fecha)).slice(-20);
   const { svg, W, H } = svgIn(el, 280);
-  const vals = pts.map((p) => Number(p.me_gusta)).sort((a, b) => a - b);
+  const vals = pts.map((p) => p.vistas).sort((a, b) => a - b);
   const p80 = d3.quantile(vals, 0.8);
   const max = vals[vals.length - 1];
-  const cap = max > p80 * 3 ? Math.ceil((p80 * 1.6) / 50) * 50 : max * 1.1;
+  const cap = max > p80 * 3 ? Math.max(normal * 2.5, p80 * 1.5) : max * 1.1;
   const y = d3.scaleLinear([0, cap], [0, 0]).nice(4);
   const ticks = y.ticks(4);
-  const m = { top: 26, right: 8, bottom: 30, left: textW(svg, ticks.map(fInt)) + 12 };
+  const m = { top: 28, right: 8, bottom: 30, left: textW(svg, ticks.map(fCompact)) + 12 };
   y.range([H - m.bottom, m.top]);
   const x = d3.scaleBand(pts.map((p) => p.codigo), [m.left, W - m.right]).padding(0.28);
   const g = svg.append('g');
-  gridY(g, y, ticks, m.left, W - m.right, fInt);
+  gridY(g, y, ticks, m.left, W - m.right, fCompact);
   const tip = tooltip(el);
-  const bw = Math.min(32, x.bandwidth());
-  pts.forEach((p, i) => {
-    const v = Number(p.me_gusta);
-    const over = v > y.domain()[1];
+  const bw = Math.min(34, x.bandwidth());
+  pts.forEach((p) => {
+    const over = p.vistas > y.domain()[1];
     const cx = x(p.codigo) + x.bandwidth() / 2;
-    const top = over ? m.top - 6 : y(v);
-    const col = p.tipo === 'Reel' ? C.ro : C.az;
-    const r = g.append('rect').attr('x', cx - bw / 2).attr('width', bw).attr('y', top).attr('height', Math.max(2, y(0) - top)).attr('rx', Math.min(5, bw / 2)).style('fill', col).style('cursor', 'pointer');
+    const top = over ? m.top - 8 : y(p.vistas);
+    const col = ETQ[p.etiqueta] || C.az;
+    const a = g.append('a').attr('href', p.url).attr('target', '_blank').attr('rel', 'noopener');
+    a.append('rect').attr('x', cx - bw / 2).attr('width', bw).attr('y', top).attr('height', Math.max(2, y(0) - top)).attr('rx', Math.min(5, bw / 2)).style('fill', col)
+      .on('pointermove', () => tip.show(fDate(p.fecha) + ' · ' + p.tema, [[col, fInt(p.vistas) + ' vistas · ' + (p.indice !== null ? fX(p.indice) + ' su normal' : '')], [null, 'Enganche ' + (p.enganche !== null ? fPct1(p.enganche) : '—') + ' · ' + fInt(p.comentarios) + ' comentarios'], [null, String(p.texto || '').slice(0, 46)]], cx, top))
+      .on('pointerleave', () => tip.hide());
     if (over) {
-      g.append('path').attr('d', `M${cx - bw / 2 - 2},${m.top + 10} L${cx + bw / 2 + 2},${m.top + 4} M${cx - bw / 2 - 2},${m.top + 16} L${cx + bw / 2 + 2},${m.top + 10}`).style('stroke', 'var(--color-panel)').attr('stroke-width', 3);
-      g.append('text').attr('x', cx).attr('y', m.top - 12).attr('text-anchor', 'middle').attr('font-size', 12).attr('font-weight', 600).style('fill', 'var(--color-fg)').text(fInt(v));
+      g.append('path').attr('d', `M${cx - bw / 2 - 2},${m.top + 12} L${cx + bw / 2 + 2},${m.top + 5} M${cx - bw / 2 - 2},${m.top + 19} L${cx + bw / 2 + 2},${m.top + 12}`).style('stroke', 'var(--color-panel)').attr('stroke-width', 3).attr('pointer-events', 'none');
+      g.append('text').attr('x', cx).attr('y', m.top - 14).attr('text-anchor', 'middle').attr('font-size', 12).attr('font-weight', 700).style('fill', col).text(fCompact(p.vistas));
     }
-    r.on('pointermove', () => tip.show(fDate(p.fecha) + ' · ' + p.tipo + (p.fijada ? ' · fijada' : ''), [[col, fInt(v) + ' me gusta · ' + fInt(p.comentarios) + ' comentarios'], [null, String(p.texto || '').slice(0, 48)]], cx, top))
-      .on('pointerleave', () => tip.hide())
-      .on('click', () => window.open(p.url, '_blank', 'noopener'));
   });
-  const step = Math.ceil(pts.length / Math.max(2, Math.floor((W - m.left) / 64)));
+  g.append('line').attr('x1', m.left).attr('x2', W - m.right).attr('y1', y(normal)).attr('y2', y(normal)).style('stroke', 'var(--color-fg)').attr('stroke-width', 1.5).attr('stroke-dasharray', '5 4').attr('opacity', 0.7).attr('pointer-events', 'none');
+  g.append('text').attr('x', W - m.right).attr('y', y(normal) - 6).attr('text-anchor', 'end').attr('font-size', 12).attr('font-weight', 600).style('fill', 'var(--color-fg)').text('Su normal: ' + fInt(normal));
+  const step = Math.ceil(pts.length / Math.max(2, Math.floor((W - m.left) / 58)));
   g.append('g').selectAll('text').data(pts.filter((_, i) => i % step === 0)).join('text')
     .attr('x', (p) => x(p.codigo) + x.bandwidth() / 2).attr('y', H - 8).attr('text-anchor', 'middle').attr('font-size', 11).style('fill', 'var(--color-fg-muted)').text((p) => fDay(pd(p.fecha)));
   g.append('line').attr('x1', m.left).attr('x2', W - m.right).attr('y1', y(0)).attr('y2', y(0)).style('stroke', 'var(--cds-chart-axis)');
+}
+
+/* ---------- mejor día ---------- */
+function drawDias(el, rows) {
+  const { svg, W, H } = svgIn(el, 210);
+  const vmax = d3.max(rows, (r) => r.vistas_mediana || 0) || 1;
+  const y = d3.scaleLinear([0, vmax * 1.15], [H - 44, 12]);
+  const x = d3.scaleBand(rows.map((r) => r.dia), [4, W - 4]).padding(0.22);
+  const best = rows.filter((r) => r.vistas_mediana).sort((a, b) => b.vistas_mediana - a.vistas_mediana)[0];
+  const g = svg.append('g');
+  const tip = tooltip(el);
+  rows.forEach((r) => {
+    const cx = x(r.dia) + x.bandwidth() / 2;
+    const bw = Math.min(40, x.bandwidth());
+    const has = !!r.vistas_mediana;
+    const top = has ? y(r.vistas_mediana) : H - 50;
+    const col = has ? (r === best ? C.ro : 'color-mix(in srgb, ' + C.ro + ' 40%, transparent)') : 'var(--cds-chart-grid)';
+    g.append('rect').attr('x', cx - bw / 2).attr('width', bw).attr('y', top).attr('height', H - 44 - top).attr('rx', 6).style('fill', col)
+      .on('pointermove', () => tip.show(r.dia, [[has ? C.ro : null, has ? fInt(r.vistas_mediana) + ' vistas típicas · ' + r.reels + (r.reels === 1 ? ' reel' : ' reels') : 'Sin reels este día todavía']], cx, top))
+      .on('pointerleave', () => tip.hide());
+    if (has) g.append('text').attr('x', cx).attr('y', top - 6).attr('text-anchor', 'middle').attr('font-size', 11).attr('font-weight', r === best ? 700 : 500).style('fill', 'var(--color-fg)').text(fCompact(r.vistas_mediana));
+    g.append('text').attr('x', cx).attr('y', H - 26).attr('text-anchor', 'middle').attr('font-size', 12).attr('font-weight', r === best ? 700 : 400).style('fill', r === best ? 'var(--color-fg)' : 'var(--color-fg-muted)').text(W < 420 ? r.dia.slice(0, 2) : r.dia.slice(0, 3));
+    g.append('text').attr('x', cx).attr('y', H - 10).attr('text-anchor', 'middle').attr('font-size', 10).style('fill', 'var(--color-fg-muted)').text(r.reels ? r.reels + (W < 420 ? '' : (r.reels === 1 ? ' reel' : ' reels')) : '');
+  });
 }
 
 /* ---------- pestañas ---------- */
@@ -347,7 +378,7 @@ function showTab(name, push) {
 tabs.forEach((t) => t.addEventListener('click', () => showTab(t.dataset.tab, true)));
 document.querySelectorAll('#tb-posts th[data-k] button').forEach((b) => b.addEventListener('click', () => {
   const k = b.parentElement.dataset.k;
-  state.sortDir = state.sortKey === k ? -state.sortDir : (k === 'texto' || k === 'tipo' ? 1 : -1);
+  state.sortDir = state.sortKey === k ? -state.sortDir : (['texto', 'tipo', 'tema'].includes(k) ? 1 : -1);
   state.sortKey = k;
   render();
 }));
@@ -358,20 +389,25 @@ function bar(v, color) { const s = document.createElement('span'); s.className =
 function withBar(v, max, color, text) { const f = document.createDocumentFragment(); f.append(bar(v / max, color), document.createTextNode(text)); return f; }
 function pill(text, color) { const s = document.createElement('span'); s.className = 'pr-pill'; s.style.background = `color-mix(in srgb, ${color} 16%, transparent)`; const d = document.createElement('i'); d.className = 'pr-dot'; d.style.background = color; d.style.width = '8px'; d.style.height = '8px'; s.append(d, document.createTextNode(text)); return s; }
 function link(text, href) { const a = document.createElement('a'); a.className = 'pr-link'; a.href = href; a.target = '_blank'; a.rel = 'noopener'; a.textContent = text; return a; }
+function etqPill(p) { if (!p.etiqueta) return document.createTextNode('—'); return pill(p.etiqueta + ' · ' + fX(p.indice), ETQ[p.etiqueta]); }
+const FMTS = { int: (v) => fInt(Math.round(v)), pct1: fPct1, dec1: (v) => d3.format('.1f')(v) };
 
 function fillValues() {
-  document.querySelectorAll('.pr-kpi-value').forEach((el) => {
-    const src = el.dataset.source, f = el.dataset.field;
-    const ds = dash.data(src);
+  document.querySelectorAll('[data-src]').forEach((el) => {
+    const ds = dash.data(el.dataset.src);
+    if (ds.status === 'loading') { el.classList.add('dash-skeleton'); return; }
+    el.classList.remove('dash-skeleton');
+    const v = ds.status === 'ok' ? ds.data[0]?.[el.dataset.f] : null;
+    el.textContent = isNum(v) ? FMTS[el.dataset.fmt](Number(v)) : '—';
+  });
+  document.querySelectorAll('.pr-kpi-value[data-source]').forEach((el) => {
+    const ds = dash.data(el.dataset.source);
     if (ds.status === 'loading') { el.classList.add('dash-skeleton'); return; }
     el.classList.remove('dash-skeleton');
     if (ds.status !== 'ok') { el.textContent = '—'; return; }
-    let v, k = f;
-    if (el.dataset.where) { const [wk, val] = el.dataset.where.split('='); const r = ds.data.find((x) => String(x[wk]) === val); v = r ? r[f] : null; k = val; }
-    else v = ds.data[Number(el.dataset.row || 0)]?.[f];
-    if (!isNum(v)) { el.textContent = '—'; return; }
-    if (k === 'interaccion_prom') el.textContent = fPct2(Number(v));
-    else el.textContent = fmtMetric(k, v);
+    const [wk, val] = el.dataset.where.split('=');
+    const r = ds.data.find((x) => String(x[wk]) === val);
+    el.textContent = r ? fmtMetric(val, r[el.dataset.field]) : '—';
   });
   const u = dash.data('ultimo');
   document.querySelectorAll('[data-note]').forEach((n) => {
@@ -393,6 +429,8 @@ function render() {
   const p3 = prog.status === 'ok' ? prog.data.find((r) => r.id === 'mes3') : null;
   const igu = dash.data('ig_ultimo');
   const last = igu.status === 'ok' ? igu.data[0] : null;
+  const kp = dash.data('kpi');
+  const k = kp.status === 'ok' ? kp.data[0] : null;
 
   // encabezado
   const tk = document.getElementById('takeaway');
@@ -400,9 +438,10 @@ function render() {
     const next = prog.data.find((r) => isNum(r.faltan) && Number(r.faltan) > 0);
     tk.replaceChildren();
     if (next) {
-      const b1 = document.createElement('b'); b1.dataset.source = 'progreso'; b1.dataset.field = 'faltan'; b1.dataset.where = 'id=' + next.id; b1.textContent = fInt(next.faltan);
-      const b2 = document.createElement('b'); b2.dataset.source = 'progreso'; b2.dataset.field = 'por_semana'; b2.dataset.where = 'id=' + next.id; b2.textContent = fInt(next.por_semana);
+      const b1 = document.createElement('b'); b1.textContent = fInt(next.faltan);
+      const b2 = document.createElement('b'); b2.textContent = fInt(next.por_semana);
       tk.append('Faltan ', b1, ` seguidores para la meta de ${MESL[pd(next.fecha).getUTCMonth()]} (${fDate(next.fecha)}): unos `, b2, ' por semana.');
+      if (k) { const b3 = document.createElement('b'); b3.textContent = fInt(k.reel_normal); tk.append(' Su reel normal llega a ', b3, ' personas.'); }
     } else tk.textContent = 'Todas las metas de seguidores del plan están cumplidas. El tablero sigue registrando cada día.';
   } else if (prog.status !== 'loading') tk.textContent = '—';
   const est = dash.data('estado');
@@ -418,73 +457,100 @@ function render() {
     drawRing(document.getElementById('ring-seg'), Number(p3.avance), fPct(Number(p3.avance)), 'de 18K seguidores (enero)', C.am);
     if (isNum(p3.avance_vistas)) drawRing(document.getElementById('ring-vis'), Number(p3.avance_vistas), fPct(Number(p3.avance_vistas)), 'de 150K vistas en 30 días', '#ffffff');
     document.getElementById('mini-seg').style.width = Math.min(100, Number(p3.avance) * 100) + '%';
-    if (isNum(p3.avance_vistas)) document.getElementById('mini-vis').style.width = Math.min(100, Number(p3.avance_vistas) * 100) + '%';
+    const mv = document.getElementById('mini-vis'); if (mv && isNum(p3.avance_vistas)) mv.style.width = Math.min(100, Number(p3.avance_vistas) * 100) + '%';
   }
   const ns = document.getElementById('note-seg'); ns.replaceChildren();
   if (last) {
     if (isNum(last.cambio)) {
       const c = Number(last.cambio); const s = document.createElement('span'); s.className = c > 0 ? 'up' : c < 0 ? 'down' : '';
       s.textContent = (c > 0 ? '+' : c < 0 ? '−' : '±') + fInt(Math.abs(c));
-      ns.append(s, document.createTextNode(' desde el ' + fDate(last.fecha_anterior) + (last.seguidores_texto ? ' · Instagram muestra ' + last.seguidores_texto : '')));
+      ns.append(s, document.createTextNode(' desde el ' + fDate(last.fecha_anterior)));
     } else ns.textContent = 'Al ' + fDate(last.fecha);
   }
-  const u = dash.data('ultimo');
-  if (u.status === 'ok') { const r = u.data.find((x) => x.metrica === 'vistas_30d_ig'); document.getElementById('note-vis').textContent = r && isNum(r.valor) ? 'Al ' + fDate(r.fecha) + ' · de su captura más reciente' : 'Pendiente de captura'; }
-  const kp = dash.data('kpi_posts');
-  if (kp.status === 'ok') document.getElementById('note-freq').textContent = d3.format('.1f')(kp.data[0].por_semana) + ' por semana · meta del plan: 4';
+  if (k) {
+    document.getElementById('note-vr').textContent = `De ${k.reels_30d} reels publicados del ${fDate(k.desde)} al ${fDate(k.hasta)}`;
+    const nr = document.getElementById('note-ritmo'); nr.replaceChildren();
+    const s = document.createElement('span'); s.className = k.por_semana >= 4 ? 'up' : 'down'; s.textContent = k.por_semana >= 4 ? 'Cumple' : 'Por debajo';
+    nr.append(s, document.createTextNode(` · publicaciones por semana; el plan pide 4`));
+  }
 
+  const pc = dash.data('posts_calc');
   const t = state.tab;
   if (t === 'resumen') {
-    const el = document.getElementById('ch-likes'); const d = prep(el, ['ig_posts']); if (d) drawPostBars(el, d[0]);
-    const et = document.getElementById('ch-tipo'); const dt = prep(et, ['por_tipo']);
-    if (dt) drawHBars(et, dt[0].map((r) => ({ label: r.tipo === 'Reel' ? 'Reels' : 'Posts', v: Number(r.mediana_me_gusta), color: r.tipo === 'Reel' ? C.ro : C.az, tip: fInt(r.mediana_me_gusta) + ' me gusta (mediana) · ' + r.publicaciones + ' publicaciones · promedio ' + fInt(r.me_gusta_prom) })), { fmt: fInt });
+    // recomendaciones
+    const rc = dash.data('recomendaciones');
+    const box = document.getElementById('recos');
+    if (rc.status === 'ok') {
+      box.replaceChildren();
+      rc.data.forEach((r) => {
+        const d = document.createElement('div'); d.className = 'pr-reco ' + r.tipo + ' pr-anim';
+        const n = document.createElement('span'); n.className = 'pr-reco-n'; n.textContent = r.n;
+        const tt = document.createElement('b'); tt.textContent = r.titulo;
+        const p = document.createElement('p'); p.textContent = r.texto;
+        const body = document.createElement('div'); body.append(tt, p);
+        d.append(n, body); box.append(d);
+      });
+      if (!rc.data.length) box.textContent = 'Todavía no hay suficientes publicaciones para recomendar algo.';
+    } else if (rc.status === 'error') box.textContent = 'No se pudieron calcular las recomendaciones.';
+    // vistas por reel
+    const ev = document.getElementById('ch-vistas'); const dv = prep(ev, ['posts_calc', 'kpi']);
+    if (dv) drawVistas(ev, dv[0], dv[1][0].reel_normal);
+    const lg = document.getElementById('leg-etq'); lg.replaceChildren();
+    Object.keys(ETQ).forEach((e) => { const s = document.createElement('span'); const i = document.createElement('i'); i.className = 'pr-dot'; i.style.background = ETQ[e]; s.append(i, document.createTextNode(ETQ_TXT[e])); lg.append(s); });
+    // temas
+    const et = document.getElementById('ch-temas'); const dt = prep(et, ['por_tema']);
+    if (dt) {
+      const rows = dt[0].filter((r) => r.vistas_mediana);
+      drawHBars(et, rows.map((r) => ({ label: r.tema, v: r.vistas_mediana, color: TEMA_COL[r.tema] || C.az, tip: fInt(r.vistas_mediana) + ' vistas típicas · ' + r.reels + (r.reels === 1 ? ' reel' : ' reels') + (r.enganche_mediano !== null ? ' · enganche ' + fPct1(r.enganche_mediano) : '') })), { fmt: (v) => fCompact(v) });
+    }
+    const ed = document.getElementById('ch-dias'); const dd = prep(ed, ['por_dia']); if (dd) drawDias(ed, dd[0]);
     drawTrajectory(document.getElementById('ch-seg'), 'ig_diario', 'seguidores', 'seguidores_min', 'seguidores_max', C.az);
   }
 
   // publicaciones
-  const pc = dash.data('posts_calc');
   const tbp = document.querySelector('#tb-posts tbody'); tbp.replaceChildren();
   if (pc.status === 'ok') {
-    const maxV = d3.max(pc.data, (p) => Number(p.me_gusta));
-    const k = state.sortKey, dir = state.sortDir;
-    pc.data.filter((p) => !state.q || (String(p.texto) + ' ' + p.tipo).toLowerCase().includes(state.q))
-      .sort((a, b) => { const x = a[k], y = b[k]; if (typeof x === 'number' || typeof y === 'number') return ((Number(x) || 0) - (Number(y) || 0)) * dir; return String(x ?? '').localeCompare(String(y ?? '')) * dir; })
+    const maxV = d3.max(pc.data, (p) => p.vistas || 0) || 1;
+    const key = state.sortKey, dir = state.sortDir;
+    pc.data.filter((p) => !state.q || (String(p.texto) + ' ' + p.tipo + ' ' + p.tema).toLowerCase().includes(state.q))
+      .sort((a, b) => { const x = a[key], y = b[key]; if (x === null && y !== null) return 1; if (y === null && x !== null) return -1; if (typeof x === 'number' || typeof y === 'number') return ((x || 0) - (y || 0)) * dir; return String(x ?? '').localeCompare(String(y ?? '')) * dir; })
       .forEach((p) => {
-        const tr = document.createElement('tr'); tr.dataset.key = p.codigo;
+        const tr = document.createElement('tr');
         cell(tr, fDate(p.fecha));
-        const tc = cell(tr, link(String(p.texto || 'Ver publicación'), p.url), 'wrap');
+        const tc = cell(tr, link(String(p.texto || 'Ver publicación').slice(0, 90), p.url), 'wrap');
         if (p.fijada) { const s = document.createElement('span'); s.className = 'pr-pin'; s.textContent = 'Fijada'; tc.append(s); }
-        cell(tr, pill(p.tipo, p.tipo === 'Reel' ? C.ro : C.az));
-        cell(tr, withBar(Number(p.me_gusta), maxV, p.tipo === 'Reel' ? C.ro : C.az, fInt(p.me_gusta)), 'num');
-        cell(tr, fInt(p.comentarios), 'num');
-        cell(tr, isNum(p.interaccion) ? fPct2(Number(p.interaccion)) : '—', 'num');
+        cell(tr, pill(p.tema, TEMA_COL[p.tema] || C.az));
+        cell(tr, p.tipo);
+        cell(tr, p.vistas !== null ? withBar(Math.sqrt(p.vistas), Math.sqrt(maxV), ETQ[p.etiqueta] || C.az, fInt(p.vistas)) : '—', 'num');
+        cell(tr, etqPill(p));
+        cell(tr, p.enganche !== null ? fPct1(p.enganche) : '—', 'num');
+        cell(tr, p.conversacion !== null ? d3.format('.1f')(p.conversacion) : '—', 'num');
+        cell(tr, isNum(p.me_gusta) ? fInt(p.me_gusta) : '—', 'num');
+        cell(tr, isNum(p.comentarios) ? fInt(p.comentarios) : '—', 'num');
         tbp.append(tr);
       });
-    document.querySelectorAll('#tb-posts th[data-k]').forEach((th) => th.setAttribute('aria-sort', th.dataset.k === k ? (dir > 0 ? 'ascending' : 'descending') : 'none'));
+    document.querySelectorAll('#tb-posts th[data-k]').forEach((th) => th.setAttribute('aria-sort', th.dataset.k === key ? (dir > 0 ? 'ascending' : 'descending') : 'none'));
   }
   if (t === 'publicaciones') {
     const top = document.getElementById('top-posts'); top.replaceChildren();
     if (pc.status === 'ok') {
-      top.classList.remove('dash-skeleton');
-      pc.data.slice().sort((a, b) => Number(b.me_gusta) - Number(a.me_gusta)).slice(0, 3).forEach((p, i) => {
-        const col = p.tipo === 'Reel' ? C.ro : C.az;
+      pc.data.filter((p) => p.indice !== null).sort((a, b) => b.indice - a.indice).slice(0, 3).forEach((p, i) => {
+        const col = ETQ[p.etiqueta] || C.az;
         const card = document.createElement('div'); card.className = 'pr-post pr-anim';
         const th = document.createElement('a'); th.className = 'pr-thumb'; th.href = p.url; th.target = '_blank'; th.rel = 'noopener';
-        th.style.background = `linear-gradient(140deg, ${col}, ${i === 0 ? C.mo : col === C.ro ? C.mo : C.ve})`;
-        th.style.textDecoration = 'none';
-        const rk = document.createElement('span'); rk.className = 'rank'; rk.textContent = '#' + (i + 1);
-        const fm = document.createElement('span'); fm.className = 'fmt'; fm.textContent = p.tipo + ' · ' + fDate(p.fecha);
-        const tt = document.createElement('span'); tt.className = 't'; tt.textContent = p.texto;
+        th.style.background = `linear-gradient(140deg, ${TEMA_COL[p.tema] || C.az}, ${col})`;
+        const rk = document.createElement('span'); rk.className = 'rank'; rk.textContent = fX(p.indice);
+        const fm = document.createElement('span'); fm.className = 'fmt'; fm.textContent = p.tipo + ' · ' + p.tema;
+        const tt = document.createElement('span'); tt.className = 't'; tt.textContent = String(p.texto).slice(0, 80);
         th.append(rk, fm, tt);
         const st = document.createElement('div'); st.className = 'pr-post-stats';
-        [['Me gusta', 'me_gusta', fInt], ['Comentarios', 'comentarios', fInt], ['Interacción', 'interaccion', fPct2]].forEach(([lab, f, fm2]) => {
-          const d = document.createElement('div'); const s = document.createElement('span'); s.textContent = lab;
-          const b = document.createElement('b'); b.dataset.source = 'posts_calc'; b.dataset.field = f; b.dataset.where = 'codigo=' + encodeURIComponent(p.codigo); b.textContent = isNum(p[f]) ? fm2(Number(p[f])) : '—';
-          d.append(s, b); st.append(d);
-        });
+        const stats = p.vistas !== null
+          ? [['Vistas', fInt(p.vistas)], ['Enganche', p.enganche !== null ? fPct1(p.enganche) : '—'], ['Fecha', fDay(pd(p.fecha))]]
+          : [['Me gusta', fInt(p.me_gusta)], ['Comentarios', fInt(p.comentarios)], ['Fecha', fDay(pd(p.fecha))]];
+        stats.forEach(([lab, val]) => { const d = document.createElement('div'); const s = document.createElement('span'); s.textContent = lab; const b = document.createElement('b'); b.textContent = val; d.append(s, b); st.append(d); });
         card.append(th, st); top.append(card);
       });
-    } else if (pc.status === 'loading') top.classList.add('dash-skeleton');
+    }
   }
 
   // sus estadísticas
@@ -506,7 +572,7 @@ function render() {
   }
   const tb = document.querySelector('#tb-progreso tbody'); tb.replaceChildren();
   if (prog.status === 'ok') prog.data.forEach((r) => {
-    const tr = document.createElement('tr'); tr.dataset.key = r.id;
+    const tr = document.createElement('tr');
     cell(tr, r.plazo); cell(tr, fDate(r.fecha)); cell(tr, fInt(r.meta_seguidores), 'num');
     cell(tr, isNum(r.avance) ? withBar(Number(r.avance), 1, C.az, fPct(Number(r.avance))) : '—');
     cell(tr, isNum(r.faltan) ? fInt(r.faltan) : '—', 'num');
