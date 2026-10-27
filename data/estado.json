@@ -1,6 +1,6 @@
 {
- "ultimo_intento": "2026-10-27T15:20:00Z",
- "ok": true,
- "metodo": "navegador",
- "mensaje": "Carga inicial desde el perfil público"
+ "ultimo_intento": "2026-10-27T15:36:02.916Z",
+ "ok": false,
+ "metodo": "ninguno",
+ "mensaje": "https://i.instagram.com/api/v1/users/web_profile_info/?username=pamrod respondió 429 | https://www.instagram.com/pamrod/ respondió 429"
 }
