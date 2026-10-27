@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Métricas de @pamrod</title>
+<meta name="description" content="Tablero de Instagram de Pamela Rodríguez (@pamrod), actualizado cada día.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,500&display=swap">
+<style>
+:root {
+  --font-anthropic-sans: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-anthropic-serif: "Fraunces", Georgia, "Times New Roman", serif;
+  --color-bg: #f6f6fb; --color-panel: #ffffff; --color-fg: #17162a; --color-fg-muted: #636180;
+  --color-border-line: #e3e2ee; --color-ok: #0f8a5f; --color-warn: #b7791f; --color-bad: #d6336c;
+  --cds-chart-grid: #ecebf3; --cds-chart-axis: #c9c7d8; --cds-chart-reference: #8f8ca8; --cds-chart-muted: #c3c1d3;
+  --cds-surface-popover: #ffffff; --cds-border: #e3e2ee; --cds-shadow-popover: 0 8px 24px rgba(23, 22, 42, .12); --cds-text-secondary: #636180;
+  --cds-gap-xs: 4px; --cds-gap-sm: 8px; --cds-gap-md: 14px; --cds-gap-lg: 22px; --cds-gap-xl: 32px;
+  --cds-pad-xs: 4px; --cds-pad-sm: 8px; --cds-pad-md: 14px; --cds-pad-lg: 20px; --cds-pad-xl: 28px;
+  --cds-radius: 12px; --cds-font-size-caption: 12.5px; --cds-font-size-body: 14.5px; --cds-font-size-heading: 16px; --cds-font-size-title: 30px;
+  --cds-font-weight-medium: 600; --cds-dur-slow: 420ms; --cds-ease-out: cubic-bezier(.2, .7, .2, 1);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --color-bg: #0f0e1a; --color-panel: #181726; --color-fg: #f1f0fa; --color-fg-muted: #a5a3bf;
+  --color-border-line: #2a2940; --color-ok: #34d399; --color-warn: #fbbf24; --color-bad: #fb7185;
+  --cds-chart-grid: #24233a; --cds-chart-axis: #3a3955; --cds-chart-reference: #8a88a8; --cds-chart-muted: #4a4868;
+  --cds-surface-popover: #1f1e30; --cds-border: #2f2e48; --cds-shadow-popover: 0 8px 24px rgba(0, 0, 0, .45); --cds-text-secondary: #a5a3bf;
+  color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --color-bg: #0f0e1a; --color-panel: #181726; --color-fg: #f1f0fa; --color-fg-muted: #a5a3bf;
+  --color-border-line: #2a2940; --color-ok: #34d399; --color-warn: #fbbf24; --color-bad: #fb7185;
+  --cds-chart-grid: #24233a; --cds-chart-axis: #3a3955; --cds-chart-reference: #8a88a8; --cds-chart-muted: #4a4868;
+  --cds-surface-popover: #1f1e30; --cds-border: #2f2e48; --cds-shadow-popover: 0 8px 24px rgba(0, 0, 0, .45); --cds-text-secondary: #a5a3bf;
+  color-scheme: dark; }
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--color-bg); color: var(--color-fg); font-family: var(--font-anthropic-sans); font-size: var(--cds-font-size-body); line-height: 1.45;
+  padding-block: max(20px, env(safe-area-inset-top, 0px)) 40px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1180px; margin-inline: auto; }
+[hidden] { display: none !important; }
+.dash-skeleton { color: transparent !important; position: relative; }
+.dash-skeleton::after { content: ""; position: absolute; inset: 0; border-radius: 6px; background: linear-gradient(90deg, var(--cds-chart-grid), var(--color-border-line), var(--cds-chart-grid)); background-size: 200% 100%; animation: pr-sk 1.4s linear infinite; }
+.pr-kpi-value.dash-skeleton::after, .pr-take .dash-skeleton::after { inset: 15% 40% 15% 0; }
+@keyframes pr-sk { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) { .dash-skeleton::after { animation: none; } }
+.pr-foot { margin-top: var(--cds-gap-xl); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); text-align: center; }
+.pr-banner.warn { border-color: var(--color-bad); }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+</head>
+<body>
+<div class="wrap">
+<style>
+/* Paleta del media kit de @pamrod: azul, amarillo, rosado; morado y verde de apoyo */
+.pr { --az: #2f6bff; --am: #ffb400; --ro: #ff3d8b; --mo: #8b5cf6; --ve: #10b981; --on-brand: #ffffff;
+  display: flex; flex-direction: column; gap: var(--cds-gap-lg); font-family: var(--font-anthropic-sans); }
+.pr b { font-weight: 600; }
+
+/* Hero */
+.pr-hero { position: relative; overflow: hidden; border-radius: calc(var(--cds-radius) * 2); padding: var(--cds-pad-xl);
+  background: linear-gradient(120deg, var(--az) 0%, var(--mo) 48%, var(--ro) 100%); color: var(--on-brand);
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--cds-gap-lg); align-items: center; }
+.pr-hero::after { content: ""; position: absolute; right: -80px; top: -90px; width: 260px; height: 260px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 180, 0, .55), rgba(255, 180, 0, 0) 70%); pointer-events: none; }
+.pr-hero-text { display: flex; flex-direction: column; gap: var(--cds-gap-sm); min-width: 0; position: relative; z-index: 1; }
+.pr-handle { display: inline-flex; align-items: center; gap: 8px; font-size: var(--cds-font-size-caption); letter-spacing: .04em; opacity: .92; }
+.pr-avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--am); color: #3a2600; display: inline-grid; place-items: center; font-weight: 700; font-size: 12px; }
+.pr-title { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: calc(var(--cds-font-size-title) * 1.35); margin: 0; line-height: 1.1; text-wrap: balance; color: var(--on-brand); }
+.pr-take { margin: 0; max-width: 60ch; font-size: var(--cds-font-size-body); color: var(--on-brand); opacity: .95; }
+.pr-take b { color: var(--on-brand); }
+.pr-rings { display: flex; gap: var(--cds-gap-lg); position: relative; z-index: 1; }
+.pr-ring { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; font-size: var(--cds-font-size-caption); }
+.pr-ring svg { display: block; }
+.pr-ring .lbl { opacity: .9; max-width: 9rem; }
+@media (max-width: 640px) { .pr-hero { grid-template-columns: 1fr; } .pr-rings { justify-content: flex-start; } }
+
+/* Tabs */
+.pr-tabs { display: flex; gap: 6px; overflow-x: auto; padding: 4px; border-radius: 999px; background: var(--color-panel); border: 1px solid var(--color-border-line); scrollbar-width: none; }
+.pr-tab { appearance: none; border: 0; background: transparent; color: var(--color-fg-muted); font: inherit; font-size: var(--cds-font-size-body);
+  padding: 8px 16px; border-radius: 999px; cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 8px; }
+.pr-tab:hover { color: var(--color-fg); }
+.pr-tab:focus-visible { outline: 2px solid var(--az); outline-offset: 2px; }
+.pr-tab[aria-selected=true] { background: var(--color-fg); color: var(--color-bg); }
+.pr-tab i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.pr-page { display: flex; flex-direction: column; gap: var(--cds-gap-lg); }
+
+/* Tiles */
+.pr-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 10.5rem), 1fr)); gap: var(--cds-gap-md); }
+.pr-kpi { --c: var(--az); border-radius: var(--cds-radius); padding: var(--cds-pad-md) var(--cds-pad-lg); display: flex; flex-direction: column; gap: 6px; min-width: 0;
+  background: color-mix(in srgb, var(--c) 9%, var(--color-panel)); border: 1px solid color-mix(in srgb, var(--c) 28%, var(--color-border-line)); }
+.pr-kpi-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.pr-kpi-label { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); display: inline-flex; align-items: center; gap: 6px; }
+.pr-kpi-label::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
+.pr-kpi-value { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); font-variant-numeric: tabular-nums; line-height: 1.1; min-height: 1.1em; }
+.pr-kpi-value[data-dash-source-state=empty] { color: var(--color-fg-muted); }
+.pr-kpi-note { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); min-height: 1.2em; }
+.pr-kpi-spark { height: 34px; }
+.pr-mini { height: 6px; border-radius: 3px; background: color-mix(in srgb, var(--c) 18%, transparent); overflow: hidden; }
+.pr-mini i { display: block; height: 100%; border-radius: 3px; background: var(--c); }
+.up { color: var(--color-ok); } .down { color: var(--color-bad); }
+.pr-chip { font-size: 11px; font-weight: 600; letter-spacing: .03em; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.pr-chip.ej { background: color-mix(in srgb, var(--am) 30%, transparent); color: var(--color-fg); }
+.pr-chip.real { background: color-mix(in srgb, var(--ve) 22%, transparent); color: var(--color-fg); }
+
+/* Cards */
+.pr-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: var(--cds-gap-md); }
+.pr-grid.wide { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); }
+@media (max-width: 860px) { .pr-grid.wide { grid-template-columns: minmax(0, 1fr); } }
+.pr-card { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); display: flex; flex-direction: column; gap: var(--cds-gap-sm); min-width: 0; }
+.pr-card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--cds-gap-sm); flex-wrap: wrap; }
+.pr-card h3 { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); margin: 0; }
+.pr-card p.note { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin: 0; }
+.pr-chart { position: relative; min-height: 240px; }
+.pr-chart.tall { min-height: 280px; }
+.pr-chart.short { min-height: 200px; }
+.pr-tip { position: absolute; pointer-events: none; background: var(--cds-surface-popover); border: 1px solid var(--cds-border); border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover); padding: var(--cds-pad-xs) var(--cds-pad-sm); font-size: var(--cds-font-size-caption); white-space: nowrap; z-index: 3; }
+.pr-tip .d { color: var(--cds-text-secondary); }
+.pr-tip .sw { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+.pr-seg { display: inline-flex; gap: 2px; padding: 3px; border-radius: 999px; background: var(--color-bg); border: 1px solid var(--color-border-line); flex-wrap: wrap; }
+.pr-seg button { appearance: none; border: 0; background: transparent; font: inherit; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); padding: 5px 12px; border-radius: 999px; cursor: pointer; }
+.pr-seg button[aria-pressed=true] { background: var(--c, var(--az)); color: #fff; }
+.pr-seg button:focus-visible { outline: 2px solid var(--az); outline-offset: 1px; }
+.pr-legend { display: flex; flex-wrap: wrap; gap: var(--cds-gap-md); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.pr-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.pr-sw { width: 14px; height: 0; border-top: 2px solid; display: inline-block; }
+.pr-sw.dash { border-top-style: dashed; }
+.pr-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+
+/* Top posts */
+.pr-top { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)); gap: var(--cds-gap-md); }
+.pr-post { border-radius: var(--cds-radius); overflow: hidden; border: 1px solid var(--color-border-line); background: var(--color-panel); display: flex; flex-direction: column; min-width: 0; }
+.pr-thumb { aspect-ratio: 4 / 3; max-width: 100%; position: relative; display: flex; flex-direction: column; justify-content: space-between; padding: var(--cds-pad-md); color: #fff; }
+.pr-thumb .rank { font-family: var(--font-anthropic-serif); font-size: 44px; line-height: 1; opacity: .9; }
+.pr-thumb .t { font-weight: 600; font-size: var(--cds-font-size-body); line-height: 1.25; text-shadow: 0 1px 2px rgba(0,0,0,.25); }
+.pr-thumb .fmt { position: absolute; top: var(--cds-pad-md); right: var(--cds-pad-md); font-size: 11px; font-weight: 600; background: rgba(0,0,0,.28); padding: 2px 8px; border-radius: 999px; }
+.pr-post-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: var(--cds-pad-sm) var(--cds-pad-md); font-variant-numeric: tabular-nums; }
+.pr-post-stats div { display: flex; flex-direction: column; }
+.pr-post-stats span { font-size: 11px; color: var(--color-fg-muted); }
+.pr-post-stats b { font-size: var(--cds-font-size-body); }
+
+/* Tables */
+.pr-tablewrap { overflow: auto; max-height: 460px; }
+.pr-table { width: 100%; border-collapse: collapse; font-size: var(--cds-font-size-body); font-variant-numeric: tabular-nums; }
+.pr-table th { position: sticky; top: 0; background: var(--color-panel); text-align: left; font-weight: var(--cds-font-weight-medium); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); padding: 0; border-bottom: 1px solid var(--color-border-line); white-space: nowrap; z-index: 1; }
+.pr-table th > button { appearance: none; border: 0; background: transparent; font: inherit; color: inherit; padding: var(--cds-pad-xs) var(--cds-pad-sm); cursor: pointer; width: 100%; text-align: inherit; }
+.pr-table th.num, .pr-table td.num { text-align: right; }
+.pr-table th:not(:has(button)) { padding: var(--cds-pad-xs) var(--cds-pad-sm); }
+.pr-table td { padding: var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); white-space: nowrap; }
+.pr-table td.wrap { white-space: normal; min-width: 14rem; }
+.pr-table tr.me td { background: color-mix(in srgb, var(--ro) 10%, transparent); }
+.pr-pill { display: inline-flex; align-items: center; gap: 6px; font-size: var(--cds-font-size-caption); padding: 2px 10px; border-radius: 999px; }
+.pr-bar { display: inline-block; width: 64px; height: 6px; border-radius: 3px; background: var(--cds-chart-grid); vertical-align: middle; margin-right: 8px; overflow: hidden; }
+.pr-bar i { display: block; height: 100%; border-radius: 3px; }
+.pr-search { font: inherit; font-size: var(--cds-font-size-caption); padding: 6px 12px; border-radius: 999px; border: 1px solid var(--color-border-line); background: var(--color-bg); color: var(--color-fg); min-width: 0; width: 14rem; max-width: 100%; }
+.pr-how { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin: 0; max-width: 72ch; }
+.pr-banner { display: flex; gap: var(--cds-gap-sm); align-items: center; flex-wrap: wrap; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted);
+  padding: var(--cds-pad-sm) var(--cds-pad-md); border-radius: var(--cds-radius); border: 1px dashed color-mix(in srgb, var(--am) 60%, var(--color-border-line)); background: color-mix(in srgb, var(--am) 8%, transparent); }
+
+[data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
+.pr-fail { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: inherit; height: 100%; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+.pr-fail::before { content: ""; width: .375rem; height: .375rem; border-radius: 50%; background: var(--color-bad); }
+@media (prefers-reduced-motion: no-preference) {
+  .pr-anim { animation: pr-rise var(--cds-dur-slow) var(--cds-ease-out) both; }
+  @keyframes pr-rise { from { opacity: .001; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+}
+</style>
+<style>
+.pr-chip.auto { background: color-mix(in srgb, var(--az) 20%, transparent); color: var(--color-fg); }
+.pr-chip.cap { background: color-mix(in srgb, var(--ro) 18%, transparent); color: var(--color-fg); }
+.pr-empty { display: flex; flex-direction: column; gap: var(--cds-gap-sm); padding: var(--cds-pad-lg); border-radius: var(--cds-radius); border: 1px dashed var(--color-border-line); color: var(--color-fg-muted); font-size: var(--cds-font-size-body); }
+.pr-empty ol { margin: 0; padding-left: 1.2em; display: flex; flex-direction: column; gap: 4px; }
+.pr-link { color: inherit; text-decoration: underline; text-decoration-color: color-mix(in srgb, currentColor 35%, transparent); text-underline-offset: 3px; }
+.pr-link:hover { text-decoration-color: currentColor; }
+.pr-thumb a { color: inherit; text-decoration: none; }
+.pr-pin { font-size: 11px; color: var(--color-fg-muted); margin-left: 6px; }
+</style>
+
+<div class="pr">
+  <header class="pr-hero" id="resumen-hero">
+    <div class="pr-hero-text">
+      <span class="pr-handle"><span class="pr-avatar">PR</span>Pamela Rodríguez · 40 & getting stronger every day</span>
+      <h1 class="pr-title">Métricas de @pamrod</h1>
+      <p class="pr-take" id="takeaway"><span class="dash-skeleton">—</span></p>
+    </div>
+    <div class="pr-rings">
+      <div class="pr-ring" id="ring-seg" data-source="progreso"></div>
+      <div class="pr-ring" id="ring-vis" data-source="progreso"></div>
+    </div>
+  </header>
+
+  <div class="pr-banner" id="aviso">
+    <span class="pr-chip auto">Automático</span><span id="aviso-auto">Perfil público de Instagram, revisado cada día a las 5:00 a. m.</span>
+    <span class="pr-chip cap">Sus estadísticas</span><span>Lo que solo ve Pamela (vistas, guardados, retención), cargado de sus capturas.</span>
+  </div>
+
+  <nav class="pr-tabs" role="tablist" aria-label="Secciones">
+    <button class="pr-tab" role="tab" data-tab="resumen" id="tab-resumen"><i style="background: var(--az)"></i>Resumen</button>
+    <button class="pr-tab" role="tab" data-tab="publicaciones" id="tab-publicaciones"><i style="background: var(--ro)"></i>Publicaciones</button>
+    <button class="pr-tab" role="tab" data-tab="estadisticas" id="tab-estadisticas"><i style="background: var(--mo)"></i>Sus estadísticas</button>
+    <button class="pr-tab" role="tab" data-tab="metas" id="tab-metas"><i style="background: var(--am)"></i>Metas</button>
+  </nav>
+
+  <!-- RESUMEN -->
+  <section class="pr-page" id="resumen" data-page="resumen">
+    <div class="pr-kpis">
+      <div class="pr-kpi" style="--c: var(--az)">
+        <div class="pr-kpi-top"><span class="pr-kpi-label">Seguidores</span><span class="pr-chip auto">Auto</span></div>
+        <span class="pr-kpi-value dash-skeleton" data-source="ig_ultimo" data-field="seguidores" data-row="0">—</span>
+        <div class="pr-mini"><i id="mini-seg"></i></div>
+        <span class="pr-kpi-note" id="note-seg"></span>
+      </div>
+      <div class="pr-kpi" style="--c: var(--ro)">
+        <div class="pr-kpi-top"><span class="pr-kpi-label">Publicaciones, 30 días</span><span class="pr-chip auto">Auto</span></div>
+        <span class="pr-kpi-value dash-skeleton" data-source="kpi_posts" data-field="publicaciones_30d" data-row="0">—</span>
+        <span class="pr-kpi-note" id="note-freq"></span>
+      </div>
+      <div class="pr-kpi" style="--c: var(--am)">
+        <div class="pr-kpi-top"><span class="pr-kpi-label">Me gusta por publicación</span><span class="pr-chip auto">Auto</span></div>
+        <span class="pr-kpi-value dash-skeleton" data-source="kpi_posts" data-field="me_gusta_mediana" data-row="0">—</span>
+        <span class="pr-kpi-note">Publicación típica (mediana), 30 días</span>
+      </div>
+      <div class="pr-kpi" style="--c: var(--ve)">
+        <div class="pr-kpi-top"><span class="pr-kpi-label">Comentarios por publicación</span><span class="pr-chip auto">Auto</span></div>
+        <span class="pr-kpi-value dash-skeleton" data-source="kpi_posts" data-field="comentarios_prom" data-row="0">—</span>
+        <span class="pr-kpi-note">Promedio, últimos 30 días</span>
+      </div>
+      <div class="pr-kpi" style="--c: var(--mo)">
+        <div class="pr-kpi-top"><span class="pr-kpi-label">Interacción pública</span><span class="pr-chip auto">Auto</span></div>
+        <span class="pr-kpi-value dash-skeleton" data-source="kpi_posts" data-field="interaccion_prom" data-row="0">—</span>
+        <span class="pr-kpi-note">(Me gusta + comentarios) ÷ seguidores</span>
+      </div>
+      <div class="pr-kpi" style="--c: var(--ro)">
+        <div class="pr-kpi-top"><span class="pr-kpi-label">Vistas, 30 días</span><span class="pr-chip cap">Captura</span></div>
+        <span class="pr-kpi-value dash-skeleton" data-source="ultimo" data-field="valor" data-where="metrica=vistas_30d_ig">—</span>
+        <div class="pr-mini"><i id="mini-vis"></i></div>
+        <span class="pr-kpi-note" id="note-vis"></span>
+      </div>
+    </div>
+
+    <div class="pr-grid wide">
+      <div class="pr-card" id="card-likes">
+        <div class="pr-card-head"><div><h3>Me gusta por publicación</h3><p class="note">Sus publicaciones más recientes, por fecha. Toca una barra para ver el detalle.</p></div><span class="pr-chip auto">Auto</span></div>
+        <div class="pr-chart tall dash-skeleton" id="ch-likes" data-source="ig_posts"></div>
+        <div class="pr-legend"><span><i class="pr-dot" style="background: var(--ro)"></i>Reel</span><span><i class="pr-dot" style="background: var(--az)"></i>Post o carrusel</span></div>
+      </div>
+      <div class="pr-card" id="card-tipo">
+        <div class="pr-card-head"><div><h3>Reels vs. posts</h3><p class="note">Me gusta de la publicación típica (mediana), así un video viral no distorsiona</p></div><span class="pr-chip auto">Auto</span></div>
+        <div class="pr-chart short dash-skeleton" id="ch-tipo" data-source="por_tipo"></div>
+      </div>
+    </div>
+
+    <div class="pr-card" id="card-camino">
+      <div class="pr-card-head"><div><h3>Seguidores: camino a las metas</h3><p class="note">Sólido: conteos reales del perfil. Punteado: el ritmo que pide el plan.</p></div><span class="pr-chip auto">Auto</span></div>
+      <div class="pr-chart dash-skeleton" id="ch-seg" data-source="ig_diario metas"></div>
+      <div class="pr-legend"><span><i class="pr-sw" style="border-top-color: var(--az)"></i>Real</span><span><i class="pr-sw dash" style="border-top-color: var(--cds-chart-reference)"></i>Meta del plan</span></div>
+    </div>
+  </section>
+
+  <!-- PUBLICACIONES -->
+  <section class="pr-page" id="publicaciones" data-page="publicaciones" hidden>
+    <div class="pr-card">
+      <div class="pr-card-head"><div><h3>Las 3 con más me gusta</h3><p class="note">De las publicaciones revisadas. Ideas para repetir con otro ángulo.</p></div><span class="pr-chip auto">Auto</span></div>
+      <div class="pr-top" id="top-posts" data-source="posts_calc"></div>
+    </div>
+    <div class="pr-card" id="card-posts">
+      <div class="pr-card-head">
+        <div><h3>Todas las publicaciones revisadas</h3><p class="note">Toca un encabezado para ordenar. Los me gusta se actualizan cada mañana.</p></div>
+        <input class="pr-search" id="post-search" type="search" placeholder="Buscar publicación…" aria-label="Buscar publicación">
+      </div>
+      <div class="pr-tablewrap">
+        <table class="pr-table" id="tb-posts" data-source="posts_calc" data-row-key="codigo">
+          <thead><tr>
+            <th data-field="fecha" data-k="fecha"><button type="button">Fecha</button></th>
+            <th data-field="texto" data-k="texto"><button type="button">Publicación</button></th>
+            <th data-field="tipo" data-k="tipo"><button type="button">Tipo</button></th>
+            <th class="num" data-field="me_gusta" data-k="me_gusta"><button type="button">Me gusta</button></th>
+            <th class="num" data-field="comentarios" data-k="comentarios"><button type="button">Comentarios</button></th>
+            <th class="num" data-field="interaccion" data-k="interaccion"><button type="button">Interacción</button></th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- SUS ESTADISTICAS -->
+  <section class="pr-page" id="estadisticas" data-page="estadisticas" hidden>
+    <div class="pr-kpis">
+      <div class="pr-kpi" style="--c: var(--ro)"><div class="pr-kpi-top"><span class="pr-kpi-label">Vistas, 30 días</span><span class="pr-chip cap">Captura</span></div><span class="pr-kpi-value dash-skeleton" data-source="ultimo" data-field="valor" data-where="metrica=vistas_30d_ig">—</span><span class="pr-kpi-note" data-note="vistas_30d_ig"></span></div>
+      <div class="pr-kpi" style="--c: var(--ve)"><div class="pr-kpi-top"><span class="pr-kpi-label">Compartidos por reel</span><span class="pr-chip cap">Captura</span></div><span class="pr-kpi-value dash-skeleton" data-source="ultimo" data-field="valor" data-where="metrica=compartidos_prom_reel">—</span><span class="pr-kpi-note" data-note="compartidos_prom_reel"></span></div>
+      <div class="pr-kpi" style="--c: var(--am)"><div class="pr-kpi-top"><span class="pr-kpi-label">Guardados por reel</span><span class="pr-chip cap">Captura</span></div><span class="pr-kpi-value dash-skeleton" data-source="ultimo" data-field="valor" data-where="metrica=guardados_prom_reel">—</span><span class="pr-kpi-note" data-note="guardados_prom_reel"></span></div>
+      <div class="pr-kpi" style="--c: var(--az)"><div class="pr-kpi-top"><span class="pr-kpi-label">Retención a 3 s</span><span class="pr-chip cap">Captura</span></div><span class="pr-kpi-value dash-skeleton" data-source="ultimo" data-field="valor" data-where="metrica=retencion_3s">—</span><span class="pr-kpi-note" data-note="retencion_3s"></span></div>
+      <div class="pr-kpi" style="--c: var(--mo)"><div class="pr-kpi-top"><span class="pr-kpi-label">% de vistas de no seguidores</span><span class="pr-chip cap">Captura</span></div><span class="pr-kpi-value dash-skeleton" data-source="ultimo" data-field="valor" data-where="metrica=pct_no_seguidores">—</span><span class="pr-kpi-note" data-note="pct_no_seguidores"></span></div>
+      <div class="pr-kpi" style="--c: var(--ro)"><div class="pr-kpi-top"><span class="pr-kpi-label">Mensajes directos</span><span class="pr-chip cap">Captura</span></div><span class="pr-kpi-value dash-skeleton" data-source="ultimo" data-field="valor" data-where="metrica=mensajes_directos">—</span><span class="pr-kpi-note" data-note="mensajes_directos"></span></div>
+    </div>
+    <div class="pr-empty" id="como-enviar">
+      <b style="color: var(--color-fg)">Cada domingo, 4 capturas de Estadísticas de Instagram</b>
+      <ol>
+        <li>Panel profesional → Resumen de los últimos 30 días (vistas, cuentas alcanzadas).</li>
+        <li>Los reels de la semana → Ver estadísticas (compartidos, guardados, retención a 3 s, % de no seguidores).</li>
+        <li>Seguidores → Edad, género y países principales.</li>
+        <li>Mensajes recibidos en la semana (un número aproximado basta).</li>
+      </ol>
+      <span>Se las envía a Hamlet y se cargan aquí el mismo día.</span>
+    </div>
+    <div class="pr-card" id="card-registro">
+      <div class="pr-card-head"><div><h3>Registro de cada domingo</h3><p class="note">Lo más reciente arriba. La primera fila viene de su media kit.</p></div><span class="pr-chip cap">Captura</span></div>
+      <div class="pr-tablewrap">
+        <table class="pr-table" id="tb-semanal" data-source="seguimiento" data-row-key="fecha">
+          <thead><tr>
+            <th data-field="fecha">Fecha</th>
+            <th class="num" data-field="vistas_30d_ig">Vistas 30 d</th>
+            <th class="num" data-field="compartidos_prom_reel">Compartidos / reel</th>
+            <th class="num" data-field="guardados_prom_reel">Guardados / reel</th>
+            <th class="num" data-field="retencion_3s">Retención 3 s</th>
+            <th class="num" data-field="pct_no_seguidores">% no seguidores</th>
+            <th class="num" data-field="mensajes_directos">Mensajes</th>
+            <th class="num" data-field="seguidores_nuevos_semana">Seguidores nuevos</th>
+            <th data-field="nota">Nota</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- METAS -->
+  <section class="pr-page" id="metas" data-page="metas" hidden>
+    <div class="pr-grid">
+      <div class="pr-card" id="card-meta-seg">
+        <div class="pr-card-head"><div><h3>Seguidores</h3><p class="note">Metas: 18K en enero, 22–25K en abril, 30K en octubre de 2027</p></div><span class="pr-chip auto">Auto</span></div>
+        <div class="pr-chart dash-skeleton" id="ch-seg2" data-source="ig_diario metas"></div>
+      </div>
+      <div class="pr-card" id="card-meta-vis">
+        <div class="pr-card-head"><div><h3>Vistas en 30 días</h3><p class="note">Metas: 150K, 250K y 400K</p></div><span class="pr-chip cap">Captura</span></div>
+        <div class="pr-chart dash-skeleton" id="ch-vis" data-source="seguimiento metas"></div>
+      </div>
+    </div>
+    <div class="pr-card" id="card-progreso">
+      <div class="pr-card-head"><div><h3>Avance por meta</h3><p class="note">"Por semana" es lo que hay que ganar cada semana para llegar a tiempo. Al cumplirlas, el tablero sigue registrando igual.</p></div></div>
+      <div class="pr-tablewrap">
+        <table class="pr-table" id="tb-progreso" data-source="progreso" data-row-key="id">
+          <thead><tr>
+            <th data-field="plazo">Plazo</th>
+            <th data-field="fecha">Fecha límite</th>
+            <th class="num" data-field="meta_seguidores">Meta seguidores</th>
+            <th data-field="avance">Avance</th>
+            <th class="num" data-field="faltan">Faltan</th>
+            <th class="num" data-field="por_semana">Por semana</th>
+            <th class="num" data-field="meta_vistas">Meta vistas 30 d</th>
+            <th data-field="avance_vistas">Avance vistas</th>
+            <th data-field="otra_meta">Otra meta</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</div>
+
+
+
+<p class="pr-foot">Datos públicos de instagram.com/pamrod, revisados cada día a las 5:00 a. m. (hora de RD). Las estadísticas privadas vienen de capturas que comparte Pamela.</p>
+</div>
+<script src="shim.js"></script>
+<script src="calcs.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

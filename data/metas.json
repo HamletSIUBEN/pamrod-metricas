@@ -1,0 +1,32 @@
+[
+ {
+  "id": "mes3",
+  "plazo": "Mes 3",
+  "fecha": "2027-01-31",
+  "seguidores_min": 18000,
+  "seguidores_max": 18000,
+  "vistas_30d": 150000,
+  "seguidores_tiktok": null,
+  "otra_meta": "1 reel por encima de 50K vistas"
+ },
+ {
+  "id": "mes6",
+  "plazo": "Mes 6",
+  "fecha": "2027-04-30",
+  "seguidores_min": 22000,
+  "seguidores_max": 25000,
+  "vistas_30d": 250000,
+  "seguidores_tiktok": null,
+  "otra_meta": "2 marcas con acuerdo de 3 meses o más"
+ },
+ {
+  "id": "mes12",
+  "plazo": "Mes 12",
+  "fecha": "2027-10-31",
+  "seguidores_min": 30000,
+  "seguidores_max": 30000,
+  "vistas_30d": 400000,
+  "seguidores_tiktok": 10000,
+  "otra_meta": "TikTok con 10K; primera clase de baile patrocinada"
+ }
+]
