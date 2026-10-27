@@ -6,9 +6,10 @@ Tablero de Instagram de Pamela Rodríguez. Se abre con un enlace, sin iniciar se
 
 ## Cómo se actualiza
 
-- **Cada día a las 5:00 a. m. (hora de RD)** GitHub lee el perfil público `instagram.com/pamrod`: seguidores, número de publicaciones, y me gusta y comentarios de las publicaciones visibles. Las nuevas se agregan solas.
-- **Para actualizar al momento** (por ejemplo, justo después de publicar): pestaña **Actions** → **Actualizar métricas** → **Run workflow**.
-- Si un día Instagram bloquea la lectura, el tablero lo avisa en la franja de arriba y se reintenta al día siguiente.
+- **Cada día a las 4:43 a. m. (hora de RD)**, para que esté listo a las 5:00, una tarea programada de Claude abre `instagram.com/pamrod` en el Chrome de Hamlet (sin iniciar sesión), lee seguidores, número de publicaciones, y me gusta y comentarios de las publicaciones visibles, y sube los datos aquí. Las publicaciones nuevas se agregan solas.
+- La computadora tiene que estar encendida con Chrome abierto. Si no se pudo leer, la franja de arriba del tablero lo avisa.
+- Cada cambio en `data/` vuelve a publicar la página automáticamente (Actions → **Publicar tablero**).
+- Instagram bloquea las lecturas desde los servidores de GitHub (error 429), por eso la lectura se hace desde un navegador.
 
 ## Lo que solo ve Pamela
 
@@ -24,5 +25,6 @@ Los porcentajes van de 0 a 1 (62 % = 0.62).
 
 - `index.html`, `app.js`, `calcs.js`, `shim.js`: la página.
 - `data/`: los datos. `metas.json` tiene las metas del plan de marca.
-- `scripts/actualizar.mjs`: el lector del perfil público.
-- `.github/workflows/actualizar.yml`: la tarea diaria y la publicación en GitHub Pages.
+- `scripts/leer-perfil.js`: se ejecuta en una pestaña de `instagram.com/pamrod` y devuelve los datos públicos.
+- `scripts/guardar.mjs`: agrega esa lectura a `data/`.
+- `.github/workflows/actualizar.yml`: publica la página en GitHub Pages.
