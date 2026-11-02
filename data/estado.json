@@ -1,6 +1,6 @@
 {
- "ultimo_intento": "2026-11-01T08:44:21.149Z",
+ "ultimo_intento": "2026-11-02T08:44:19.165Z",
  "ok": false,
  "metodo": "ninguno",
- "mensaje": "Claude in Chrome no estaba disponible en esta ejecución (sin conexión al navegador)"
+ "mensaje": "La extensión Claude in Chrome no está conectada en esta ejecución (sesión en la nube sin acceso al navegador)"
 }
