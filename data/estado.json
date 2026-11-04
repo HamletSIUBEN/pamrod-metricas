@@ -1,6 +1,6 @@
 {
- "ultimo_intento": "2026-11-03T08:44:29.741Z",
+ "ultimo_intento": "2026-11-04T08:44:15.291Z",
  "ok": false,
  "metodo": "ninguno",
- "mensaje": "Claude in Chrome no estaba disponible en esta ejecución (sin conexión a la computadora)"
+ "mensaje": "Claude in Chrome no estaba disponible en la ejecución programada (sin conexión al navegador)"
 }
