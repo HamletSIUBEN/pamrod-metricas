@@ -1,6 +1,6 @@
 {
- "ultimo_intento": "2026-11-12T08:43:56.040Z",
+ "ultimo_intento": "2026-11-13T08:44:04.065Z",
  "ok": false,
  "metodo": "ninguno",
- "mensaje": "Claude in Chrome no estaba disponible en esta ejecución en la nube (sin conexión a la computadora), no se pudo leer Instagram"
+ "mensaje": "Claude in Chrome no estaba disponible en esta ejecución en la nube (sin extensión conectada)"
 }
